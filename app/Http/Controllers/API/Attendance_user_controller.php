@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance_user;
 use Illuminate\Http\Request;
 use Rats\Zkteco\Lib\ZKTeco;
+use Illuminate\Support\Facades\Log;
 
 class Attendance_user_controller extends Controller
 {
@@ -41,9 +42,6 @@ class Attendance_user_controller extends Controller
 
         /*Collect User Data From Machine*/
         $users = $zk->getUser();
-        $attendaces = $zk->getAttendance();
-
-
         return $users;
     }
     public function syncAttendanceUsers(){
@@ -74,4 +72,39 @@ class Attendance_user_controller extends Controller
 
         return response()->json(['success' =>true, 'message' => 'Users synced successfully'], 200);
     }
+    public function machine_attendance_list() {
+        $deviceip = env('ZKTeco_IP_ADDRESS', '192.168.0.103');
+        $deviceport = env('ZKTeco_PORT', 8088);
+        $zk = new ZKTeco($deviceip, $deviceport);
+        try {
+            if ($zk && $zk->connect()) {
+                $logs = $zk->getAttendance();
+                $zk->disconnect();
+
+                if (!empty($logs)) {
+                    return response()->json(['success' => true, 'data' => $logs], 200);
+                } else {
+                    return response()->json(['success' => false, 'message' => 'No attendance data found'], 404);
+                }
+            }
+            return response()->json(['success' => false, 'message' => 'Failed to connect to device'], 500);
+        } catch (\Exception $e) {
+            Log::error('Get attendance error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function device_data_clear_attendance()
+    {
+        $deviceip = env('ZKTeco_IP_ADDRESS', '192.168.0.103');
+        $deviceport = env('ZKTeco_PORT', 8088);
+        $zk = new ZKTeco($deviceip, $deviceport);
+        $zk->connect();
+       $zk->disableDevice();
+        $zk->clearAttendance();
+
+        return response()->json(['success' => true, 'message' => 'Attendance cleared successfully'], 200);
+    }
+
+
 }

@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/attendance_user',[Attendance_user_controller::class, 'get_attendance_user']);
 
 Route::get('/machine_attendance_user',[Attendance_user_controller::class, 'machine_attendance_user']);
+Route::get('/machine_attendance_list',[Attendance_user_controller::class, 'machine_attendance_list']);
+Route::get('/device_data_clear_attendance',[Attendance_user_controller::class, 'device_data_clear_attendance']);
 
 Route::get('/sync-attendance-users',[Attendance_user_controller::class, 'syncAttendanceUsers']);
 
